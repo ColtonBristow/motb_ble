@@ -5,16 +5,11 @@ import 'package:beacons_plugin/beacons_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:line_icons/line_icons.dart';
 import 'package:motb_ble/models/ble_model.dart';
+import 'package:motb_ble/views/bleSearchView.dart';
 
-final bleListProvider = StateProvider<Map<String, BLE>>((ref) => {});
-
-final isFetchingProvider = StateProvider<bool>((ref) => false);
-
-class BLEResultWidget extends HookConsumerWidget {
-  const BLEResultWidget({Key? key}) : super(key: key);
-
+class BLEMapView extends HookConsumerWidget {
+  const BLEMapView({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stream = useStreamController();
@@ -70,41 +65,18 @@ class BLEResultWidget extends HookConsumerWidget {
     final Map<String, BLE> sortedDeviceList =
         SplayTreeMap.from(bleDeviceList.state, (key1, key2) => bleDeviceList.state[key1]!.distance.compareTo(bleDeviceList.state[key2]!.distance));
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-        onPressed: () {
-          if (ref.watch(isFetchingProvider.state).state == true) {
-            ref.read(isFetchingProvider.state).state = false;
-            stopFetch();
-          } else {
-            ref.read(isFetchingProvider.state).state = true;
-            fetch();
-          }
-        },
-        child: ref.watch(isFetchingProvider.state).state ? Icon(LineIcons.squareFull) : Icon(LineIcons.syncIcon),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              children: sortedDeviceList.entries
-                  .map(
-                    (data) => ListTile(
-                      leading: Text('${data.value.proximity.characters.first == 'U' ? '?' : data.value.proximity.characters.first}'),
-                      title: Text('You are ${data.value.distance}m from device'),
-                      subtitle: Text(
-                        'Major:${data.value.major} Minor:${data.value.minor}',
-                        textScaleFactor: .7,
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
-        ].toList(),
-      ),
+    BLE nearestBleDevice = sortedDeviceList.entries.first.value;
+
+    fetch();
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Row(
+          children: [],
+        ),
+        Text(nearestBleDevice.minor.toString(), textScaleFactor: 2),
+      ],
     );
   }
 }

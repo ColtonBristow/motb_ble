@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:line_icons/line_icons.dart';
-import 'package:motb_ble/views/widgets/bleResultWidget.dart';
+import 'package:motb_ble/views/bleMapView.dart';
+import 'package:motb_ble/views/bleSearchView.dart';
 
 final indexProvider = StateProvider<int>((ref) => 0);
 
@@ -20,8 +21,8 @@ class _MainViewState extends ConsumerState<MainView> with WidgetsBindingObserver
   @override
   Widget build(BuildContext context) {
     final views = [
-      BLEResultWidget(),
-      Column(),
+      BLEResultView(),
+      BLEMapView(),
       Column(),
       Column(),
     ];
@@ -33,7 +34,7 @@ class _MainViewState extends ConsumerState<MainView> with WidgetsBindingObserver
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
-      body: views[0],
+      body: views[ref.watch(indexProvider.state).state],
       backgroundColor: Theme.of(context).colorScheme.background,
       bottomNavigationBar: SnakeNavigationBar.color(
         currentIndex: ref.watch(indexProvider.state).state,
