@@ -8,7 +8,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:motb_ble/models/ble_model.dart';
 import 'package:motb_ble/repositories/customException.dart';
 
-final BlESListControllerProvider = StateNotifierProvider<BlESListController, AsyncValue<Map<String, BLE>>>((ref) => BlESListController(ref.read));
+final BlESListControllerProvider =
+    StateNotifierProvider<BlESListController, AsyncValue<Map<String, BLE>>>(
+        (ref) => BlESListController(ref.read));
 
 final groupListExceptionProvider = StateProvider<CustomException?>((_) => null);
 
@@ -22,6 +24,23 @@ class BlESListController extends StateNotifier<AsyncValue<Map<String, BLE>>> {
 
   Future<void> retrieveBlES({bool isRefreshing = false}) async {
     if (isRefreshing) state = AsyncValue.loading();
+    if (Platform.isAndroid) {
+      //Prominent disclosure
+      await BeaconsPlugin.setDisclosureDialogMessage(
+          title: "Need Location Permission",
+          message: "This app collects location data to work with beacons.");
+
+      //Only in case, you want the dialog to be shown again. By Default, dialog will never be shown if permissions are granted.
+      await BeaconsPlugin.clearDisclosureDialogShowFlag(false);
+    }
+
+    BeaconsPlugin.channel.setMethodCallHandler(
+      (call) async {
+        if (call.method == 'isPermissionDialogShown') {
+          //Do something here
+        }
+      },
+    );
     try {
       BeaconsPlugin.listenToBeacons(streamController);
       BeaconsPlugin.setDebugLevel(0);

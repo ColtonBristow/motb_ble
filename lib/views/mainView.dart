@@ -47,7 +47,8 @@ class _MainViewState extends ConsumerState<MainView> with WidgetsBindingObserver
         showSelectedLabels: false,
         showUnselectedLabels: false,
         snakeShape: SnakeShape.indicator,
-        padding: Platform.isIOS ? EdgeInsets.fromLTRB(20, 0, 20, 0) : EdgeInsets.fromLTRB(20, 0, 20, 10),
+        padding:
+            Platform.isIOS ? EdgeInsets.fromLTRB(20, 0, 20, 0) : EdgeInsets.fromLTRB(20, 0, 20, 10),
         snakeViewColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Theme.of(context).colorScheme.onBackground,
         behaviour: SnakeBarBehaviour.floating,
