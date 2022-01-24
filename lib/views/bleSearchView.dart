@@ -47,10 +47,13 @@ class BLEResultView extends HookConsumerWidget {
         (data) {
           if (data.isNotEmpty) {
             final BLE ble = BLE.fromJson(data);
-            final Map<String, BLE> newMap = {...ref.read(bleListProvider.state).state};
-            newMap['Major${ble.major}minor${ble.minor}'] = ble;
 
-            ref.read(bleListProvider.state).state = newMap;
+            if (ble.distance > 0) {
+              final Map<String, BLE> newMap = {...ref.read(bleListProvider.state).state};
+              newMap['Major${ble.major}minor${ble.minor}'] = ble;
+
+              ref.read(bleListProvider.state).state = newMap;
+            }
           }
         },
         onDone: () {
@@ -67,8 +70,10 @@ class BLEResultView extends HookConsumerWidget {
       ref.read(bleListProvider.state).state = {};
     }
 
-    final Map<String, BLE> sortedDeviceList =
-        SplayTreeMap.from(bleDeviceList.state, (key1, key2) => bleDeviceList.state[key1]!.distance.compareTo(bleDeviceList.state[key2]!.distance));
+    final Map<String, BLE> sortedDeviceList = SplayTreeMap.from(
+        bleDeviceList.state,
+        (key1, key2) =>
+            bleDeviceList.state[key1]!.distance.compareTo(bleDeviceList.state[key2]!.distance));
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
@@ -83,7 +88,9 @@ class BLEResultView extends HookConsumerWidget {
             fetch();
           }
         },
-        child: ref.watch(isFetchingProvider.state).state ? Icon(LineIcons.squareFull) : Icon(LineIcons.syncIcon),
+        child: ref.watch(isFetchingProvider.state).state
+            ? Icon(LineIcons.squareFull)
+            : Icon(LineIcons.syncIcon),
       ),
       body: Column(
         children: [
@@ -92,7 +99,8 @@ class BLEResultView extends HookConsumerWidget {
               children: sortedDeviceList.entries
                   .map(
                     (data) => ListTile(
-                      leading: Text('${data.value.proximity.characters.first == 'U' ? '?' : data.value.proximity.characters.first}'),
+                      leading: Text(
+                          '${data.value.proximity.characters.first == 'U' ? '?' : data.value.proximity.characters.first}'),
                       title: Text('You are ${data.value.distance}m from device'),
                       subtitle: Text(
                         'Major:${data.value.major} Minor:${data.value.minor}',

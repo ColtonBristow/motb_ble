@@ -8,13 +8,16 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:motb_ble/models/ble_model.dart';
 import 'package:motb_ble/views/bleSearchView.dart';
 
+final floorInfoProvider = StateProvider<List>((ref) => []);
+
 class BLEMapView extends HookConsumerWidget {
   const BLEMapView({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stream = useStreamController();
-    final bleDeviceList = ref.watch(bleListProvider.state);
-    final bleDeviceListController = ref.read(bleListProvider.state);
+    final bleDeviceMap = ref.watch(bleListProvider.state);
+    final bleDeviceList = ref.watch(floorInfoProvider.state);
+    final bleDeviceListController = ref.read(floorInfoProvider.state);
 
     fetch() async {
       BeaconsPlugin.listenToBeacons(stream);
@@ -42,14 +45,25 @@ class BLEMapView extends HookConsumerWidget {
         (data) {
           if (data.isNotEmpty) {
             final BLE ble = BLE.fromJson(data);
-            final Map<String, BLE> newMap = {...ref.read(bleListProvider.state).state};
-            newMap['Major${ble.major}minor${ble.minor}'] = ble;
 
-            ref.read(bleListProvider.state).state = newMap;
+            if (ble.distance > 0) {
+              final newList = [
+                ble.major,
+                ble.minor.toString()[0],
+                ble.minor.toString()[1],
+                ble.minor.toString()[2]
+              ];
+
+              final Map<String, BLE> newMap = {...ref.read(bleListProvider.state).state};
+              newMap['Major${ble.major}minor${ble.minor}'] = ble;
+
+              ref.read(bleListProvider.state).state = newMap;
+              ref.read(floorInfoProvider.state).state = [...newList];
+            }
           }
         },
         onDone: () {
-          print('done');
+          print('=========done=========');
         },
         onError: (error) {
           print("Error: $error");
@@ -62,21 +76,36 @@ class BLEMapView extends HookConsumerWidget {
       ref.read(bleListProvider.state).state = {};
     }
 
-    final Map<String, BLE> sortedDeviceList =
-        SplayTreeMap.from(bleDeviceList.state, (key1, key2) => bleDeviceList.state[key1]!.distance.compareTo(bleDeviceList.state[key2]!.distance));
+    fetch();
+
+    final Map<String, BLE> sortedDeviceList = SplayTreeMap.from(
+        ref.watch(bleListProvider.state).state,
+        (key1, key2) =>
+            bleDeviceMap.state[key1]!.distance.compareTo(bleDeviceMap.state[key2]!.distance));
 
     BLE nearestBleDevice = sortedDeviceList.entries.first.value;
-
-    fetch();
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Row(
-          children: [],
-        ),
-        Text(nearestBleDevice.minor.toString(), textScaleFactor: 2),
-      ],
-    );
+    return bleDeviceList.state.length > 0
+        ? Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                  '${nearestBleDevice.proximity} minor: ${nearestBleDevice.minor} ${nearestBleDevice.distance}'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [Text('Raw data: ${bleDeviceList.state}')],
+              ),
+              Text(
+                  'You are on floor: ${bleDeviceList.state[0].toString() == '0' ? 'tbd' : bleDeviceList.state[0]}',
+                  textScaleFactor: 2),
+              Text(
+                  'You are in gallery: ${bleDeviceList.state[1].toString() == '0' ? 'tbd' : bleDeviceList.state[1].toString()}',
+                  textScaleFactor: 2),
+              Text(
+                  'You are near: ${bleDeviceList.state[2].toString() == '0' ? 'tbd' : 'Great Isaiah Scroll'}',
+                  textScaleFactor: 2),
+            ],
+          )
+        : Text('empty');
   }
 }

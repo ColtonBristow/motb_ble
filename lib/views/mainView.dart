@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:motb_ble/views/bleMapView.dart';
 import 'package:motb_ble/views/bleSearchView.dart';
+import 'package:motb_ble/views/bleStatisticsView.dart';
 
 final indexProvider = StateProvider<int>((ref) => 0);
 
@@ -23,7 +24,7 @@ class _MainViewState extends ConsumerState<MainView> with WidgetsBindingObserver
     final views = [
       BLEResultView(),
       BLEMapView(),
-      Column(),
+      BleStatisticsView(),
       Column(),
     ];
 
